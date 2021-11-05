@@ -7,7 +7,7 @@ from typing import TypeAlias
 
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
-from  matplotlib.patches import Rectangle
+from matplotlib.patches import Rectangle
 
 
 Number: TypeAlias = int | float
@@ -48,8 +48,12 @@ def graph_size_restrictions(length: Number, width: Number,
 
     remove_border(axis)
 
-    # axis.plot(1, 0, ">k", transform=axis.get_yaxis_transform(), clip_on=False)
-    # axis.plot(0, 1, "^k", transform=axis.get_xaxis_transform(), clip_on=False)
+    # axis.plot(
+    #     1, 0, ">k", transform=axis.get_yaxis_transform(), clip_on=False
+    # )
+    # axis.plot(
+    #     0, 1, "^k", transform=axis.get_xaxis_transform(), clip_on=False
+    # )
 
     # исходный прямоугольник
     axis.add_patch(
@@ -94,9 +98,13 @@ def graph_size_restrictions(length: Number, width: Number,
 
     # подписи меток на осях
     axis.set_xticks([0, width, max_width, x_lim])
-    axis.set_xticklabels(['$0$', '$W_0$', '$W_{max}=\\frac{H_0L_0}{H_1}$', '$x$'])
+    axis.set_xticklabels(
+        ['$0$', '$W_0$', '$W_{max}=\\frac{H_0L_0}{H_1}$', '$x$']
+    )
     axis.set_yticks([0, length, max_length, y_lim])
-    axis.set_yticklabels(['$0$', '$L_0$', '$L_{max}=\\frac{H_0W_0}{W_1}$', '$y$'])
+    axis.set_yticklabels(
+        ['$0$', '$L_0$', '$L_{max}=\\frac{H_0W_0}{W_1}$', '$y$']
+    )
 
     axis.set_xlim(0, x_lim)
     axis.set_ylim(0, y_lim)
