@@ -8,7 +8,10 @@ Module contains:
     - Voronov Vladimir
 """
 
-from .types import Number, Coord
+from operator import attrgetter
+from typing import Iterable
+
+from .types import Number, Coord, Size
 
 
 class Rectangle:
@@ -57,6 +60,16 @@ class Rectangle:
     @coord.setter
     def coord(self, value: Coord) -> None:
         self._coord = value
+
+    @property
+    def x(self) -> Number:
+        """Coordinate X of lower-left corner of rectangle"""
+        return self._coord[0]
+
+    @property
+    def y(self) -> Number:
+        """Coordinate Y of lower-left corner of rectangle"""
+        return self._coord[1]
 
     @property
     def trp(self) -> Coord:
@@ -115,3 +128,31 @@ class Rectangle:
     def diagonal(self):
         """Diagonal of rectangle"""
         return (self.length**2 + self.width**2) ** 0.5
+
+    @property
+    def size(self) -> Size:
+        """Size of rectangle (length, width)"""
+        return self.length, self.width
+
+    @size.setter
+    def size(self, value: Size) -> None:
+        """Size of rectangle (length, width)"""
+        self.length, self.width = value
+
+
+def min_enclosing_rect(rectangles: Iterable[Rectangle]) -> Rectangle:
+    """Минимальный объемлющий прямоугольник
+
+    Минимальный прямоугольник, который содержит заданный набор
+    прямоугольников.
+
+    :param rectangles: набор прямоугольников
+    :type rectangles: Iterable[Rectangle]
+    :return: минимальный объемлющий прямоугольник
+    :rtype: Rectangle
+    """
+    blp_x = min(map(attrgetter('x'), rectangles))
+    blp_y = min(map(attrgetter('y'), rectangles))
+    trp_x = max(rect.trp[0] for rect in rectangles)
+    trp_y = max(rect.trp[1] for rect in rectangles)
+    return Rectangle(trp_y - blp_y, trp_x - blp_x, coord=(blp_x, blp_y))
