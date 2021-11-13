@@ -104,7 +104,8 @@ class Rectangle:
         if self.y < other.trp[1] < self.trp[1]:
             ys.add(other.trp[1])
 
-        for (x, y), (x_trp, y_trp) in itertools.product():
+        for (x, y), (x_trp, y_trp) in itertools.product(pairwise(sorted(xs)),
+                                                        pairwise(sorted(ys))):
             length, width = y_trp - y, x_trp - x
             rect = self.__class__(length, width, (x, y))
             if rect != self:
