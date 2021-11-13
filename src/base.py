@@ -11,7 +11,7 @@ Module contains:
 import itertools
 
 from operator import attrgetter
-from typing import Generator, Iterable, TypeVar
+from typing import Generator, Iterable, Optional, TypeVar
 
 from .types import Number, Coord, Size
 
@@ -39,7 +39,7 @@ class Rectangle:
         """Rotate rectangle 90 degrees"""
         self.width, self.length = self.length, self.width
 
-    def intersection(self, other: 'Rectangle') -> None | 'Rectangle':
+    def intersection(self, other: 'Rectangle') -> Optional['Rectangle']:
         """Пересечение двух прямоугольников
 
         Основано на реализации пересечения из SFML_.
