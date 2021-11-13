@@ -8,10 +8,15 @@ Module contains:
     - Voronov Vladimir
 """
 
+import itertools
+
 from operator import attrgetter
-from typing import Iterable
+from typing import Generator, Iterable, TypeVar
 
 from .types import Number, Coord, Size
+
+
+T = TypeVar('T')
 
 
 class Rectangle:
@@ -33,6 +38,77 @@ class Rectangle:
     def rotate(self) -> None:
         """Rotate rectangle 90 degrees"""
         self.width, self.length = self.length, self.width
+
+    def intersection(self, other: 'Rectangle') -> None | 'Rectangle':
+        """Пересечение двух прямоугольников
+
+        Основано на реализации пересечения из SFML_.
+        .. _SFML: https://github.com/SFML/SFML/blob/12d81304e63e333174d943ba3ff572e38abd56e0/include/SFML/Graphics/Rect.inl#L109
+
+        Также смотри `это обсуждение`_.
+        .. _`это обсуждение`: https://stackoverflow.com/questions/25068538/intersection-and-difference-of-two-rectangles
+
+        :param other: Второй прямоугольник с которым ищется пересечение.
+        :type other: Rectangle
+        :return: Прямоугольник как результат пересечения, или `None`,
+                 если пересечения нет.
+        :rtype: None | Rectangle
+        """
+        x = max(min(self.x, self.trp[0]), min(other.x, other.trp[0]))
+        y = max(min(self.y, self.trp[1]), min(other.y, other.trp[1]))
+        x_top_right_point = min(
+            max(self.x, self.trp[0]), max(other.x, other.trp[0])
+        )
+        y_top_right_point = min(
+            max(self.y, self.trp[1]), max(other.y, other.trp[1])
+        )
+        if x < x_top_right_point and y < y_top_right_point:
+            length = y_top_right_point - y
+            width = x_top_right_point - x
+            return self.__class__(length, width, (x, y))
+        return None
+
+    def difference(self,
+                   other: 'Rectangle') -> Generator['Rectangle', None, None]:
+        """Разность двух прямоугольников
+
+        Возвращает от 1 до 8 прямоугольников.
+        Возможны следующие ситуации:
+        - `other` находится вне текущего прямоугольника;
+        - `other` полностью перекрывает текущий прямоугольник;
+        - `other` находится внутри текущего прямоугольника;
+        - `other` частично перекрывает текущий прямоугольник;
+
+        Смотри `это обсуждение`_.
+        .. _`это обсуждение`: https://stackoverflow.com/questions/25068538/intersection-and-difference-of-two-rectangles
+
+        :param other: Вычитаемый прямоугольник.
+        :type other: Rectangle
+        :yield: Прямоугольники составляющие разность.
+        :rtype: Generator['Rectangle', None, None]
+        """
+        inter = self & other
+        if inter is None:
+            yield self
+            return
+
+        xs = {self.x, self.trp[0]}
+        ys = {self.y, self.trp[1]}
+
+        if self.x < other.x < self.trp[0]:
+            xs.add(other.x)
+        if self.x < other.trp[0] < self.trp[0]:
+            xs.add(other.trp[0])
+        if self.y < other.y < self.trp[1]:
+            ys.add(other.y)
+        if self.y < other.trp[1] < self.trp[1]:
+            ys.add(other.trp[1])
+
+        for (x, y), (x_trp, y_trp) in itertools.product():
+            length, width = y_trp - y, x_trp - x
+            rect = self.__class__(length, width, (x, y))
+            if rect != self:
+                yield rect
 
     @property
     def length(self) -> Number:
@@ -139,6 +215,18 @@ class Rectangle:
         """Size of rectangle (length, width)"""
         self.length, self.width = value
 
+    __and__ = intersection  # &
+    __sub__ = difference  # -
+
+    def __repr__(self) -> str:
+        return (
+            f'{self.__class__.__name__}'
+            f'({self.length}, {self.width}, {self.coord})'
+        )
+
+    def __copy__(self) -> 'Rectangle':
+        return Rectangle(self.length, self.width, self.coord)
+
 
 def min_enclosing_rect(rectangles: Iterable[Rectangle]) -> Rectangle:
     """Минимальный объемлющий прямоугольник
@@ -156,3 +244,19 @@ def min_enclosing_rect(rectangles: Iterable[Rectangle]) -> Rectangle:
     trp_x = max(rect.trp[0] for rect in rectangles)
     trp_y = max(rect.trp[1] for rect in rectangles)
     return Rectangle(trp_y - blp_y, trp_x - blp_x, coord=(blp_x, blp_y))
+
+
+def pairwise(iterable: Iterable[T]) -> Iterable[tuple[T, T]]:
+    """Попарное объединение элементов
+
+    >>> list(pairwise([1, 2, 3]))
+    [(1, 2), (2, 3)]
+
+    :param iterable: Итерируемый объект
+    :type iterable: [type]
+    :return: Последовательность пар
+    :rtype: [type]
+    """
+    first, second = itertools.tee(iterable)
+    next(second, None)
+    return zip(first, second)
