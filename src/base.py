@@ -219,6 +219,17 @@ class Rectangle:
     __and__ = intersection  # &
     __sub__ = difference  # -
 
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, self.__class__):
+            return False
+        return (
+            o.length == self.length and o.width == self.width and
+            o.coord == self.coord
+        )
+
+    def __ne__(self, o: object) -> bool:
+        return not o == self
+
     def __repr__(self) -> str:
         return (
             f'{self.__class__.__name__}'
