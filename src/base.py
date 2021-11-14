@@ -30,14 +30,17 @@ class Rectangle:
     :type _coord: tuple[int | float, int | float]
     """
     def __init__(self, length: Number, width: Number,
-                 coord: Coord | None=None) -> None:
+                 coord: Coord | None=None,
+                 is_rotatable: bool=True) -> None:
         self._length = length
         self._width = width
         self._coord = coord if coord else (0, 0)
+        self.is_rotatable = is_rotatable
 
     def rotate(self) -> None:
         """Rotate rectangle 90 degrees"""
-        self.width, self.length = self.length, self.width
+        if self.is_rotatable:
+            self.width, self.length = self.length, self.width
 
     def intersection(self, other: 'Rectangle') -> Optional['Rectangle']:
         """Пересечение двух прямоугольников
