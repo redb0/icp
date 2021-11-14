@@ -166,7 +166,7 @@ def recursive_packing(x: Number, y: Number, length: Number, width: Number,
             omega, d = rectangles[best].width, rectangles[best].length
         else:
             omega, d = rectangles[best].length, rectangles[best].width
-        result.append(Rectangle(d, omega, (x, y)))
+        result.append(Rectangle(d, omega, (x, y), name=str(best)))
         indices.remove(best)
 
         new_length, new_width = length - d, width - omega
