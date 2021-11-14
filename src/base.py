@@ -31,11 +31,12 @@ class Rectangle:
     """
     def __init__(self, length: Number, width: Number,
                  coord: Coord | None=None,
-                 is_rotatable: bool=True) -> None:
+                 is_rotatable: bool=True, name='') -> None:
         self._length = length
         self._width = width
         self._coord = coord if coord else (0, 0)
         self.is_rotatable = is_rotatable
+        self.name = name
 
     def rotate(self) -> None:
         """Rotate rectangle 90 degrees"""
