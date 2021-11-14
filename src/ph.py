@@ -15,6 +15,7 @@
 """
 
 import math
+import sys
 
 from operator import attrgetter
 from typing import Literal, TypeAlias
@@ -89,7 +90,8 @@ def sort(rectangles: RectList,
 
 def ph_bpp(length: Number, width: Number, rectangles: RectList,
            start: Point=(0, 0), sorting: SortAttr='width',
-           soft_type: None | SoftType=None, excess: Number=0) -> RectList:
+           soft_type: None | SoftType=None,
+           excess: Number=0) -> list[Rectangle]:
     """Приоритетная эвристика для задачи упаковки контейнера.
 
     Учитывает поворот элементов на 90 градусов и гильотинные
@@ -110,11 +112,16 @@ def ph_bpp(length: Number, width: Number, rectangles: RectList,
     :param excess: Степень превышения исходных размеров, см. :func:`get_best_gig`, defaults to 0
     :type excess: Number, optional
     :return: Список размещенных элементов
-    :rtype: RectList
+    :rtype: list[Rectangle]
     """
     result = []
 
+    for rect in rectangles:
+        if rect.width > rect.length:
+            rect.length, rect.width = rect.width, rect.length
+
     _, sorted_indices = sort(rectangles, sorting=sorting)
+    print(f'{sorted_indices = }')
 
     recursive_packing(
         *start, length, width, rectangles, sorted_indices, result,
@@ -124,7 +131,7 @@ def ph_bpp(length: Number, width: Number, rectangles: RectList,
 
 
 def recursive_packing(x: Number, y: Number, length: Number, width: Number,
-                      rectangles: list[RectangleProtocol], indices: list[int],
+                      rectangles: RectList, indices: list[int],
                       result: list[Rectangle],
                       soft_type: None | SoftType=None, excess: Number=0):
     """Рекурсивная процедура для приоритетной эвристики
@@ -173,11 +180,15 @@ def recursive_packing(x: Number, y: Number, length: Number, width: Number,
                 new_x, y, length, new_width, rectangles, indices, result
             )
         elif priority == 4:
-            min_l = min([rectangles[i].length for i in indices])
-            min_w = min([rectangles[i].width for i in indices])
-            # Because we can rotate:
-            min_w = min(min_l, min_w)
-            min_l = min_w
+            if not indices:
+                min_l = min_w = sys.maxsize
+            else:
+                min_l = min([rectangles[i].length for i in indices])
+                min_w = min([rectangles[i].width for i in indices])
+                # Because we can rotate:
+                min_w = min(min_l, min_w)
+                min_l = min_w
+            print(min_l, min_w)
             if new_width < min_w:
                 recursive_packing(
                     x, new_y, new_length, width, rectangles, indices, result
@@ -186,19 +197,19 @@ def recursive_packing(x: Number, y: Number, length: Number, width: Number,
                 recursive_packing(
                     new_x, y, length, new_width, rectangles, indices, result
                 )
-            elif omega < min_w:
-                recursive_packing(
-                    new_x, y, d, new_width, rectangles, indices, result
-                )
-                recursive_packing(
-                    x, new_y, new_length, width, rectangles, indices, result
-                )
-            else:
+            elif d < min_w:
                 recursive_packing(
                     x, new_y, new_length, omega, rectangles, indices, result
                 )
                 recursive_packing(
                     new_x, y, length, new_width, rectangles, indices, result
+                )
+            else:
+                recursive_packing(
+                    new_x, y, d, new_width, rectangles, indices, result
+                )
+                recursive_packing(
+                    x, new_y, new_length, width, rectangles, indices, result
                 )
         elif priority == 7:
             # для мягких размеров по длине
