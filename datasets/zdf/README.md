@@ -1,5 +1,6 @@
 # Набор данных `zdf`
 
+Набор данных для задачи упаковки прямоугольников в полосу.
 Был предложен в работах:
 
 - [A fast layer-based heuristic for non-guillotine strip packing](https://www.sciencedirect.com/science/article/pii/S0957417411006324)
