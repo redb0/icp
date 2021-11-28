@@ -16,7 +16,7 @@ from typing import Generator, Iterable, Optional, TypeVar
 from .types import Number, Coord, Size
 
 
-T = TypeVar('T')
+_T = TypeVar('_T')
 
 
 class Rectangle:
@@ -240,8 +240,14 @@ class Rectangle:
             f'({self.length}, {self.width}, {self.coord})'
         )
 
+    def copy(self):
+        return self.__copy__()
+
     def __copy__(self) -> 'Rectangle':
-        return Rectangle(self.length, self.width, self.coord)
+        return Rectangle(self.length, self.width, self.coord, self.is_rotatable, self.name)
+
+    def __hash__(self) -> int:
+        return hash((self._length, self._width, self._coord, self.is_rotatable, self.name))
 
 
 def min_enclosing_rect(rectangles: Iterable[Rectangle]) -> Rectangle:
@@ -262,7 +268,7 @@ def min_enclosing_rect(rectangles: Iterable[Rectangle]) -> Rectangle:
     return Rectangle(trp_y - blp_y, trp_x - blp_x, coord=(blp_x, blp_y))
 
 
-def pairwise(iterable: Iterable[T]) -> Iterable[tuple[T, T]]:
+def pairwise(iterable: Iterable[_T]) -> Iterable[tuple[_T, _T]]:
     """Попарное объединение элементов
 
     >>> list(pairwise([1, 2, 3]))
