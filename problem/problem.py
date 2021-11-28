@@ -1,6 +1,7 @@
 """Модуль для работы с примером"""
 
 import math
+from pathlib import Path
 from statistics import mean, stdev
 from typing import TypeAlias
 
@@ -37,7 +38,7 @@ class Problem:
         :type path: str
         """
         if path is None and self.name:
-            path = f'./problems/{self.name}.txt'
+            path = Path.cwd() / f'./datasets/{self.name}.txt'
         else:
             raise ValueError('File path or problem name not specified')
         save(self._rectangles, *self._size, path)
@@ -52,7 +53,7 @@ class Problem:
         length, width, rectangles = read(path)
         return cls((length, width), rectangles, name=str(path))
 
-    def specifications_area(self) -> dict[str, Number]:
+    def spec_area(self) -> dict[str, Number]:
         """Характеристики, связанные с площадью
 
         :return: Словарь с характеристиками
@@ -75,7 +76,7 @@ class Problem:
             'max_area_ratio': max(areas) / min(areas),  # максимальное соотношение площадей
         }
 
-    def specifications_proportion(self) -> dict[str, Number]:
+    def spec_proportion(self) -> dict[str, Number]:
         """Характеристики, связанные с пропорциями
 
         :return: Словарь с характеристиками
@@ -102,6 +103,20 @@ class Problem:
             'std_baspect_ratio': stdev(baspect_ratio),
         }
 
+    def print_spec_area(self) -> None:
+        """Печать характеристик площади"""
+        print(f'Параметры площади примера {self.name}:')
+        for key, value in self.spec_area().items():
+            print(f'\t{key}: {value:.6f}')
+        print('-' * 50)
+
+    def print_spec_proportion(self) -> None:
+        """Печать характеристик пропорций"""
+        print(f'Параметры пропорций примера {self.name}:')
+        for key, value in self.spec_proportion().items():
+            print(f'\t{key}: {value:.6f}')
+        print('-' * 50)
+
 
 def read(path: str) -> tuple[Number, Number, ListSize]:
     """Чтение примера из txt файла
@@ -120,10 +135,11 @@ def read(path: str) -> tuple[Number, Number, ListSize]:
                 # count = int(line)
             if i == 1:
                 bin_width = int(line)
-            elif 1 == 2:
+            elif i == 2:
                 bin_length = int(line)
-            _, length, width = map(int, line.split())
-            rectangles.append((length, width))
+            else:
+                length, width = map(int, line.split())
+                rectangles.append((length, width))
     return bin_length, bin_width, rectangles
 
 
