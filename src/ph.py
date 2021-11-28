@@ -17,6 +17,7 @@
 import math
 import sys
 
+from collections import deque
 from operator import attrgetter
 from typing import Literal, TypeAlias
 
@@ -89,9 +90,9 @@ def sort(rectangles: RectList,
 
 
 def ph_bpp(length: Number, width: Number, rectangles: RectList,
-           start: Point=(0, 0), sorting: SortAttr='width',
+           start: Point=(0, 0), sorting: None | SortAttr='width',
            soft_type: None | SoftType=None,
-           excess: Number=0) -> list[Rectangle]:
+           excess: Number=0) -> list[tuple[int, Rectangle]]:
     """Приоритетная эвристика для задачи упаковки контейнера.
 
     Учитывает поворот элементов на 90 градусов и гильотинные
@@ -114,25 +115,89 @@ def ph_bpp(length: Number, width: Number, rectangles: RectList,
     :return: Список размещенных элементов
     :rtype: list[Rectangle]
     """
-    result = []
-
+    bin_area = length * width
     for rect in rectangles:
         if rect.width > rect.length:
             rect.length, rect.width = rect.width, rect.length
 
-    _, sorted_indices = sort(rectangles, sorting=sorting)
-    print(f'{sorted_indices = }')
+    if sorting is None:
+        # sorted_indices = list(range(len(rectangles)))
+        sorted_indices = []
+        for i, item in enumerate(rectangles):
+            if item.length * item.width <= bin_area:
+                sorted_indices.append(i)
+    else:
+        _, sorted_indices = sort(rectangles, sorting=sorting)
 
-    recursive_packing(
-        *start, length, width, rectangles, sorted_indices, result,
+    result = packing(
+        *start, length, width, rectangles, sorted_indices,
         soft_type=soft_type, excess=excess
     )
+
+    return result
+
+
+def packing(x: Number, y: Number, length: Number, width: Number,
+            rectangles: RectList, indices: list[int],
+            soft_type: None | SoftType=None,
+            excess: Number=0) -> list[tuple[int, Rectangle]]:
+    result = []
+    regions = deque([(x, y, length, width)])
+
+    while regions:
+        region = regions.popleft()
+        r_x, r_y, region_l, region_w = region
+        priority, orientation, best = get_best_fig(
+            region_l, region_w, rectangles, indices,
+            soft_type=soft_type, excess=excess
+        )
+
+        if priority < 10 and best is not None:
+            if orientation == 0:
+                omega, d = rectangles[best].width, rectangles[best].length
+            else:
+                omega, d = rectangles[best].length, rectangles[best].width
+            result.append(
+                (best, Rectangle(d, omega, (r_x, r_y), name=str(best)))
+            )
+            indices.remove(best)
+
+            new_x, new_y = r_x + omega, r_y + d
+            if priority == 2:
+                regions.append((r_x, new_y, region_l - d, region_w))
+            elif priority == 3:
+                regions.append((new_x, r_y, region_l, region_w - omega))
+            elif priority == 4:
+                if not indices:
+                    min_l = min_w = sys.maxsize
+                else:
+                    min_l = min(rectangles[i].length for i in indices)
+                    min_w = min(rectangles[i].width for i in indices)
+                    # Because we can rotate:
+                    min_w = min(min_l, min_w)
+                    min_l = min_w
+                if region_w - omega < min_w:
+                    regions.append((r_x, new_y, region_l - d, region_w))
+                elif region_l - d < min_l:
+                    regions.append((new_x, r_y, region_l, region_w - omega))
+                elif d < min_w:
+                    regions.append((r_x, new_y, region_l - d, omega))
+                    regions.append((new_x, r_y, region_l, region_w - omega))
+                else:
+                    regions.append((new_x, r_y, d, region_w - omega))
+                    regions.append((r_x, new_y, region_l - d, region_w))
+            elif priority == 7:
+                # для мягких размеров по длине
+                regions.append((new_x, r_y, d, region_w - omega))
+            elif priority == 8:
+                # для мягких размеров по ширине
+                regions.append((r_x, new_y, region_l - d, omega))
     return result
 
 
 def recursive_packing(x: Number, y: Number, length: Number, width: Number,
                       rectangles: RectList, indices: list[int],
-                      result: list[Rectangle],
+                      result: list[tuple[int, Rectangle]],
                       soft_type: None | SoftType=None, excess: Number=0):
     """Рекурсивная процедура для приоритетной эвристики
 
@@ -166,7 +231,7 @@ def recursive_packing(x: Number, y: Number, length: Number, width: Number,
             omega, d = rectangles[best].width, rectangles[best].length
         else:
             omega, d = rectangles[best].length, rectangles[best].width
-        result.append(Rectangle(d, omega, (x, y), name=str(best)))
+        result.append((best, Rectangle(d, omega, (x, y), name=str(best))))
         indices.remove(best)
 
         new_length, new_width = length - d, width - omega
@@ -183,12 +248,11 @@ def recursive_packing(x: Number, y: Number, length: Number, width: Number,
             if not indices:
                 min_l = min_w = sys.maxsize
             else:
-                min_l = min([rectangles[i].length for i in indices])
-                min_w = min([rectangles[i].width for i in indices])
+                min_l = min(rectangles[i].length for i in indices)
+                min_w = min(rectangles[i].width for i in indices)
                 # Because we can rotate:
                 min_w = min(min_l, min_w)
                 min_l = min_w
-            print(min_l, min_w)
             if new_width < min_w:
                 recursive_packing(
                     x, new_y, new_length, width, rectangles, indices, result
@@ -283,6 +347,8 @@ def get_best_fig(length: Number, width: Number, rectangles: RectList,
 
     for i in indices:
         size = (rectangles[i].length, rectangles[i].width)
+        if size[0] * size[1] > max_length * max_width:
+            continue
         for j in range(1 + rectangles[i].is_rotatable):
             rect_w = size[(1 + j) % 2]
             rect_l = size[(0 + j) % 2]
@@ -292,8 +358,11 @@ def get_best_fig(length: Number, width: Number, rectangles: RectList,
                 priority, orientation, best = 2, j, i
             elif priority > 3 and rect_l == length and rect_w < width:
                 priority, orientation, best = 3, j, i
-            elif priority > 4 and rect_l < length and rect_w < width:
-                priority, orientation, best = 4, j, i
+            elif priority >= 4 and rect_l < length and rect_w < width:
+                if priority == 4 and j == 1 and best == i:
+                    orientation = j
+                if priority > 4:
+                    priority, orientation, best = 4, j, i
 
             # Мягкие размеры
             elif priority > 5 and soft_type and rect_l <= max_length and rect_w == width:
@@ -314,4 +383,7 @@ def get_best_fig(length: Number, width: Number, rectangles: RectList,
                 priority, orientation, best = 9, j, i
             elif priority > 10:
                 priority, orientation, best = 10, j, i
+        if priority == 1:
+            # Можно дальше не искать
+            break
     return priority, orientation, best
