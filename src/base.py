@@ -282,3 +282,31 @@ def pairwise(iterable: Iterable[_T]) -> Iterable[tuple[_T, _T]]:
     first, second = itertools.tee(iterable)
     next(second, None)
     return zip(first, second)
+
+
+def difference_rect(dst: Rectangle, src: list[Rectangle]) -> list[Rectangle]:
+    """Разность прямоугольников
+
+    Предполагается, что на каждом шаге вычисления разности есть
+    прямоугольники с совпадающим размером одной из сторон.
+
+    Реализована преимущественно для получения одного прямоугольника.
+
+    :param dst: Исходный прямоугольник, из которого будут
+    вычитаться остальные.
+    :type dst: Rectangle
+    :param src: Список вычитаемых прямогольников.
+    :type src: list[Rectangle]
+    :return: Оставшиеся после вычитания прямоугольные области.
+    :rtype: list[Rectangle]
+    """
+    result = []
+    for rect in src:
+        if not result:
+            result = list(dst - rect)
+        else:
+            for subrect in result[:]:
+                result.remove(subrect)
+                sub = list(subrect - rect)
+                result.extend(sub)
+    return result
