@@ -22,10 +22,9 @@ from operator import attrgetter
 from typing import Literal, TypeAlias
 
 from .base import Rectangle
-from .types import Number, Point, RectangleProtocol
+from .types import Number, Point, RectangleProtocol, SoftType
 
 
-SoftType: TypeAlias = Literal[1, 2, 3]
 SortAttr: TypeAlias = Literal[
     'width', 'length', 'max', 'min', 'area', 'diagonal'
 ]

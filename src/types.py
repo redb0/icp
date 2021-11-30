@@ -5,7 +5,7 @@
     - Voronov Vladimir
 """
 
-from typing import Protocol, TypeAlias
+from typing import Literal, Protocol, TypeAlias
 
 
 Number: TypeAlias = int | float
@@ -14,6 +14,8 @@ Coord: TypeAlias = tuple[Number, Number]
 Size: TypeAlias = tuple[Number, Number]
 Point: TypeAlias = tuple[Number, Number]
 SizeList: TypeAlias = list[Size]
+
+SoftType: TypeAlias = Literal[1, 2, 3]
 
 
 class RectangleProtocol(Protocol):
