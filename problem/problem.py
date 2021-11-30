@@ -31,17 +31,19 @@ class Problem:
             'rectangles': self._rectangles
         }
 
-    def save(self, path: None | str=None) -> None:
+    def save(self, path: str='') -> None:
         """Сохранение в файл формата txt
 
         :param path: Путь до файла
         :type path: str
         """
-        if path is None and self.name:
-            path = Path.cwd() / f'./datasets/{self.name}.txt'
+        if path:
+            abs_path = path
+        elif self.name:
+            abs_path = Path.cwd() / f'./datasets/{self.name}.txt'
         else:
             raise ValueError('File path or problem name not specified')
-        save(self._rectangles, *self._size, path)
+        save(self._rectangles, *self._size, abs_path)
 
     @classmethod
     def read(cls, path: str) -> 'Problem':
@@ -117,6 +119,16 @@ class Problem:
             print(f'\t{key}: {value:.6f}')
         print('-' * 50)
 
+    @property
+    def rectangles(self) -> ListSize:
+        """Список размеров прямоугольников"""
+        return self._rectangles
+
+    @property
+    def size(self) -> Size:
+        """Размеры контейнера в виде пары (длина, ширина)"""
+        return self._size
+
 
 def read(path: str) -> tuple[Number, Number, ListSize]:
     """Чтение примера из txt файла
@@ -144,7 +156,7 @@ def read(path: str) -> tuple[Number, Number, ListSize]:
 
 
 def save(rectangles: ListSize,
-         bin_length: Number, bin_width: Number, path: str) -> None:
+         bin_length: Number, bin_width: Number, path: str | Path) -> None:
     """Сохранение примера в текстовый файл
 
     :param rectangles: Список размеров прямоугольников
