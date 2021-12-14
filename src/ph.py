@@ -163,9 +163,9 @@ def packing(x: Number, y: Number, length: Number, width: Number,
 
             new_x, new_y = r_x + omega, r_y + d
             if priority == 2:
-                regions.append((r_x, new_y, region_l - d, region_w))
+                regions.appendleft((r_x, new_y, region_l - d, region_w))
             elif priority == 3:
-                regions.append((new_x, r_y, region_l, region_w - omega))
+                regions.appendleft((new_x, r_y, region_l, region_w - omega))
             elif priority == 4:
                 if not indices:
                     min_l = min_w = sys.maxsize
@@ -176,21 +176,22 @@ def packing(x: Number, y: Number, length: Number, width: Number,
                     min_w = min(min_l, min_w)
                     min_l = min_w
                 if region_w - omega < min_w:
-                    regions.append((r_x, new_y, region_l - d, region_w))
+                    regions.appendleft((r_x, new_y, region_l - d, region_w))
                 elif region_l - d < min_l:
-                    regions.append((new_x, r_y, region_l, region_w - omega))
+                    regions.appendleft((new_x, r_y, region_l, region_w - omega))
                 elif d < min_w:
-                    regions.append((r_x, new_y, region_l - d, omega))
-                    regions.append((new_x, r_y, region_l, region_w - omega))
+                    regions.appendleft((new_x, r_y, region_l, region_w - omega))
+                    regions.appendleft((r_x, new_y, region_l - d, omega))
                 else:
-                    regions.append((new_x, r_y, d, region_w - omega))
-                    regions.append((r_x, new_y, region_l - d, region_w))
+                    regions.appendleft((r_x, new_y, region_l - d, region_w))
+                    regions.appendleft((new_x, r_y, d, region_w - omega))
             elif priority == 7:
+                # TODO: Как сдвинуть остальные области, если превышен предел?
                 # для мягких размеров по длине
-                regions.append((new_x, r_y, d, region_w - omega))
+                regions.appendleft((new_x, r_y, d, region_w - omega))
             elif priority == 8:
                 # для мягких размеров по ширине
-                regions.append((r_x, new_y, region_l - d, omega))
+                regions.appendleft((r_x, new_y, region_l - d, omega))
     return result
 
 
@@ -340,9 +341,9 @@ def get_best_fig(length: Number, width: Number, rectangles: RectList,
 
     max_length, max_width = length, width
     if soft_type in (1, 3) and excess > 0:
-        max_length *= 1 + excess
+        max_length *= (1 + excess)
     if soft_type in (2, 3) and excess > 0:
-        max_width *= 1 + excess
+        max_width *= (1 + excess)
 
     for i in indices:
         size = (rectangles[i].length, rectangles[i].width)
