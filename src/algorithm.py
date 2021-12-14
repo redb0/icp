@@ -162,8 +162,8 @@ def get_best_fig(rectangles: ListRectangles, indices: list[int], region: Coord,
             best_idx = indices.index(index)
             remainder = indices[:best_idx] + indices[best_idx + 1:]
             soft_type = None
-            if empty:
-                soft_type = soft_size_type(empty[0], min_rect)
+            # if empty:
+            #     soft_type = soft_size_type(empty[0], min_rect)
             res = additional_packaging(empty, rectangles, remainder, soft_type)
             res.append((best_rect, index))
             max_length = max([item.tlp[1] for item, _ in res])
