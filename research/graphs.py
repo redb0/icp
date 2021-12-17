@@ -3,7 +3,10 @@
 Предназначен для исследования различных аспектов решаемых задач раскроя.
 """
 
+import math
 from typing import TypeAlias
+from pathlib import Path
+from statistics import mean, stdev, median
 
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
@@ -112,5 +115,78 @@ def graph_size_restrictions(length: Number, width: Number,
     plt.show()
 
 
+def graph_aspect_ratio_efficiency():
+    efficiency = []
+    aspect_ratio_std = []
+    gaps = []
+
+    abs_path = Path.cwd()
+    res_file = abs_path / 'results/zdf_area_result.txt'
+    zdf_path = abs_path / 'datasets/zdf'
+    with res_file.open('r', encoding='utf-8') as file:
+        for i, line in enumerate(file.readlines()):
+            if i == 2 or (i - 2) % 4 == 0:
+                efficiency.append(float(line))
+            if i == 1 or (i - 1) % 4 == 0:
+                gaps.append(math.prod([int(item) for item in line.split()]))
+
+    for i in range(1, 16 + 1):
+        example_path = zdf_path / f'zdf{i}.txt'
+        print(f'{example_path = }')
+        aspect_ratio = []
+        length = width = 0
+        with example_path.open('r', encoding='utf-8') as file:
+            for j, line in enumerate(file.readlines()):
+                if j == 1:
+                    length = int(line)
+                elif j == 2:
+                    width = int(line)
+                elif j > 2:
+                    size = [int(item) for item in line.split()]
+                    aspect_ratio.append(max(size) / min(size))
+                    # Площадь
+                    # aspect_ratio.append((length * width) / (size[0] * size[1]))
+                    # aspect_ratio.append((size[0] * size[1]) / (length * width))
+                    # aspect_ratio.append(size[0] * size[1])
+                    # Пропорции
+                    # aspect_ratio.append(
+                    #     (max((length, width)) / min((length, width))) / (max(size) / min(size))
+                    # )
+        gaps[i - 1] = (gaps[i - 1] - (length * width)) / (length * width)
+        aspect_ratio_std.append(stdev(aspect_ratio))
+
+        print(f'zdf{i} mean: {mean(aspect_ratio)}')
+        print(f'zdf{i} median: {median(sorted(aspect_ratio))}')
+        print(f'Gap: {gaps[i - 1]}')
+        print('-' * 50)
+
+    print(f'Min aspect ratio std: {min(aspect_ratio_std)}')
+    print(f'Max aspect ratio std: {max(aspect_ratio_std)}')
+    print(f'Mean aspect ratio std: {mean(aspect_ratio_std)}')
+
+    print(f'Min gap: {min(gaps)}')
+    print(f'Max gap: {max(gaps)}')
+    print(f'Mean gap: {mean(gaps)}')
+
+    _, axes = plt.subplots(figsize=(12, 6))
+    axes.grid()
+    for i, (x, y) in enumerate(zip(aspect_ratio_std, efficiency)):
+        axes.scatter(x, y, color="black")
+        if i == 4:
+            axes.annotate(f'zdf{i + 1}', xy=(x, y), xytext=(x - 1.04, y - .0013))
+        elif i == 7:
+            axes.annotate(f'zdf{i + 1}', xy=(x, y), xytext=(x - 1.04, y - .0013))
+        elif i == 9:
+            axes.annotate(f'zdf{i + 1}', xy=(x, y), xytext=(x - 1.08, y - .0013))
+        elif i == 15:
+            axes.annotate(f'zdf{i + 1}', xy=(x, y), xytext=(x - 1.08, y - .0013))
+        else:
+            axes.annotate(f'zdf{i + 1}', xy=(x, y), xytext=(x + .15, y - .0013))
+    axes.set_xlabel('$\sigma_a$')
+    axes.set_ylabel('$f(S)$', rotation=0)
+    plt.show()
+
+
 if __name__ == '__main__':
-    graph_size_restrictions(10, 6, 3, 1.5)
+    # graph_size_restrictions(10, 6, 3, 1.5)
+    graph_aspect_ratio_efficiency()
