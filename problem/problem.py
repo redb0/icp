@@ -129,6 +129,21 @@ class Problem:
         """Размеры контейнера в виде пары (длина, ширина)"""
         return self._size
 
+    def __len__(self) -> int:
+        return len(self._rectangles)
+
+    def __str__(self) -> str:
+        return (
+            f'Problem {self.name} with '
+            f'{self.__len__()} rectangles and size {self._size}'
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f'{self.__class__.__name__}'
+            f'({self._size}, {self._rectangles}, name={self.name})'
+        )
+
 
 def read(path: str) -> tuple[Number, Number, ListSize]:
     """Чтение примера из txt файла
