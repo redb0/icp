@@ -9,8 +9,10 @@ from pathlib import Path
 from statistics import mean, stdev, median
 
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
+from matplotlib import rc, rcParams
 from matplotlib.patches import Rectangle
+
+from problem import Problem
 
 
 Number: TypeAlias = int | float
@@ -20,12 +22,25 @@ rcParams['text.usetex'] = True
 rcParams['font.family'] = 'serif'
 rcParams['font.sans-serif'] = ['Times New Roman']
 rcParams['font.size'] = '14'
+rc('text.latex', preamble=r'\usepackage[utf8]{inputenc}')
+rc('text.latex', preamble=r'\usepackage[russian]{babel}')
 
 
 def remove_border(axis):
     """Удаление верхней и правой границы"""
     axis.spines['top'].set_visible(False)
     axis.spines['right'].set_visible(False)
+
+
+def scatter_hist(x, y, ax, ax_hist, axis_mark='y', label='',
+                 xlabel='$n$', ylabel='$f(S)$', bins=20):
+    ax_hist.tick_params(axis=axis_mark, labelleft=False)
+    ax.scatter(x, y, alpha=0.7, label=label)
+    ax.set_xlabel(xlabel, loc="center")
+    ax.set_ylabel(ylabel, rotation=0, loc="center")
+    ax.yaxis.set_label_coords(-.12, 0.5)
+    ax_hist.hist(y, bins=bins, orientation='horizontal', alpha=0.7)
+    ax_hist.set_xlabel(xlabel, loc="center")
 
 
 def graph_size_restrictions(length: Number, width: Number,
@@ -184,6 +199,54 @@ def graph_aspect_ratio_efficiency():
             axes.annotate(f'zdf{i + 1}', xy=(x, y), xytext=(x + .15, y - .0013))
     axes.set_xlabel('$\sigma_a$')
     axes.set_ylabel('$f(S)$', rotation=0)
+    plt.show()
+
+
+def read_result(path):
+    result = []
+    sizes = []
+    abs_path = Path.cwd()
+    res_file = abs_path / path
+    with res_file.open('r', encoding='utf-8') as file:
+        for i, line in enumerate(file.readlines()):
+            if i == 2 or (i - 2) % 4 == 0:
+                result.append(float(line))
+            if i == 1 or (i - 1) % 4 == 0:
+                sizes.append(tuple(int(item) for item in line.split()))
+    return result, sizes
+
+
+def graph_number_efficiency():
+    fig = plt.figure(figsize=(10, 5))
+    gridspec = fig.add_gridspec(
+        1, 2,  width_ratios=(7, 2),
+        left=0.15, right=0.9, bottom=0.2, top=0.8, wspace=0.05, hspace=0.05
+    )
+
+    x = []
+    for i in range(1, 301):
+        path = f'../datasets/instance/instance{i}.txt'
+        problem = Problem.read(path)
+        x.append(len(problem))
+
+    axes = fig.add_subplot(gridspec[0, 0])
+    ax_histy = fig.add_subplot(gridspec[0, 1], sharey=axes)
+
+    # area_res_file = 'results/instance_area_result.txt'
+    # width_res_file = 'results/instance_width_result.txt'
+    # area_y, _ = read_result(area_res_file)
+    # width_y, _ = read_result(width_res_file)
+    # scatter_hist(x, width_y, ax, None, ax_histy, 'Ширина', 20)
+    # scatter_hist(x, area_y, ax, None, ax_histy, 'Площадь', 20)
+
+    length_res_file = 'results/instance_length_result.txt'
+    diagonal_res_file = 'results/instance_diagonal_result.txt'
+    length_y, _ = read_result(length_res_file)
+    diagonal_y, _ = read_result(diagonal_res_file)
+    scatter_hist(x, length_y, axes, None, ax_histy, 'Длина', 40)
+    scatter_hist(x, diagonal_y, axes, None, ax_histy, 'Диагональ', 40)
+
+    axes.legend()
     plt.show()
 
 
