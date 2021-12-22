@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rc, rcParams
 from matplotlib.patches import Rectangle
 
-from problem import Problem
+from problem.problem import Problem
 
 
 Number: TypeAlias = int | float
@@ -225,7 +225,7 @@ def graph_number_efficiency():
 
     x = []
     for i in range(1, 301):
-        path = f'../datasets/instance/instance{i}.txt'
+        path = f'datasets/instance/instance{i}.txt'
         problem = Problem.read(path)
         x.append(len(problem))
 
@@ -233,18 +233,18 @@ def graph_number_efficiency():
     ax_histy = fig.add_subplot(gridspec[0, 1], sharey=axes)
 
     # area_res_file = 'results/instance_area_result.txt'
-    # width_res_file = 'results/instance_width_result.txt'
+    # length_res_file = 'results/instance_length_result.txt'
     # area_y, _ = read_result(area_res_file)
-    # width_y, _ = read_result(width_res_file)
-    # scatter_hist(x, width_y, ax, None, ax_histy, 'Ширина', 20)
-    # scatter_hist(x, area_y, ax, None, ax_histy, 'Площадь', 20)
+    # length_y, _ = read_result(length_res_file)
+    # scatter_hist(x, area_y, axes, ax_histy, label='Площадь', bins=20)
+    # scatter_hist(x, length_y, axes, ax_histy, label='Длина', bins=20)
 
-    length_res_file = 'results/instance_length_result.txt'
+    width_res_file = 'results/instance_width_result.txt'
     diagonal_res_file = 'results/instance_diagonal_result.txt'
-    length_y, _ = read_result(length_res_file)
+    width_y, _ = read_result(width_res_file)
     diagonal_y, _ = read_result(diagonal_res_file)
-    scatter_hist(x, length_y, axes, None, ax_histy, 'Длина', 40)
-    scatter_hist(x, diagonal_y, axes, None, ax_histy, 'Диагональ', 40)
+    scatter_hist(x, width_y, axes, ax_histy, label='Ширина', bins=40)
+    scatter_hist(x, diagonal_y, axes, ax_histy, label='Диагональ', bins=40)
 
     axes.legend()
     plt.show()
@@ -252,4 +252,5 @@ def graph_number_efficiency():
 
 if __name__ == '__main__':
     # graph_size_restrictions(10, 6, 3, 1.5)
-    graph_aspect_ratio_efficiency()
+    # graph_aspect_ratio_efficiency()
+    graph_number_efficiency()
